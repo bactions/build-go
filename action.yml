@@ -1,0 +1,17 @@
+name: "Build Go Application"
+description: "Builds the application written in Go and uploads artifact with the binary and additional files"
+
+inputs:
+  go_version:
+    required: false
+    default: '1.21'
+    description: "Version of Go which should be used to perform the checks"
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version: ${{inputs.go_version}}
