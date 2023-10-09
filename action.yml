@@ -12,6 +12,10 @@ runs:
 
   steps:
     - uses: actions/checkout@v4
+    - name: Default CGO_ENABLED
+      if: env.CGO_ENABLED == ''
+      shell: bash
+      run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
     - uses: actions/setup-go@v4
       with:
         go-version: ${{inputs.go_version}}
