@@ -16,11 +16,7 @@ builds:
       - 'CC={{ index .Env (print "CC_" .Os "_" .Arch) }}'
 
 release:
-  name_template: "Release v{{.Version}}"
-  mode: keep-existing
-  replace_existing_draft: false
-  draft: true
-  disable: '{{ if index .Env "DISABLE_RELEASE" }}{{ .Env.DISABLE_RELEASE }}{{ else }}false{{ end }}'
+  disable: true
 
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ title .Os }}_{{ replace .Arch "amd64" "x86_64"  }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
