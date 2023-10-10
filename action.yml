@@ -6,6 +6,10 @@ inputs:
     required: false
     default: '1.21'
     description: "Version of Go which should be used to perform the checks"
+  release_binaries:
+    required: false
+    default: 'true'
+    description: "If the packages with binaries should be attached to release"
 
 runs:
   using: "composite"
@@ -39,6 +43,7 @@ runs:
         args: -f ${{ github.action_path }}/.goreleaser.yml release --clean --debug
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        DISABLE_RELEASE: ${{ inputs.release_binaries == 'true' && 'false' || 'true' }}
     - name: Upload
       uses: actions/upload-artifact@v3
       with:

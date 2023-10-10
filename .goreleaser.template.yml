@@ -26,7 +26,7 @@ archives:
   - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ title .Os }}_{{ replace .Arch "amd64" "x86_64"  }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
 
 checksum:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ title .Os }}_checksums.txt"
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ title .Env.TARGET_OS }}_checksums.txt"
 
 snapshot:
   name_template: "{{ incminor .Version }}-next"
