@@ -12,10 +12,31 @@ runs:
 
   steps:
     - uses: actions/checkout@v4
-    - name: Default CGO_ENABLED
+      with:
+        fetch-depth: 0
+    - run: git fetch --force --tags
+      shell: bash
+    - name: 'Default CGO_ENABLED = 0'
       if: env.CGO_ENABLED == ''
       shell: bash
       run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
     - uses: actions/setup-go@v4
       with:
         go-version: ${{inputs.go_version}}
+    - name: 'Set target os'
+      shell: bash
+      run: echo "TARGET_OS=$(go env GOOS)" >> $GITHUB_ENV
+    - name: 'Prepare goreleaser configuration'
+      shell: bash
+      run: 'envsubst < ${{ github.action_path }}/.goreleaser.template.yml > ${{ github.action_path }}/.goreleaser.yml'
+    - uses: goreleaser/goreleaser-action@v5
+      with:
+        version: latest
+        args: -f ${{ github.action_path }}/.goreleaser.yml release --clean --debug
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: bin-${{ env.TARGET_OS }}
+        path: dist/${{ github.event.repository.name }}_*.tar.gz
