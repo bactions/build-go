@@ -23,6 +23,10 @@ runs:
     - uses: actions/setup-go@v4
       with:
         go-version: ${{inputs.go_version}}
+    - name: Install cross-compiler for linux/arm64
+      if: env.CGO_ENABLED == '1'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get -y install gcc-aarch64-linux-gnu
     - name: 'Set target os'
       shell: bash
       run: echo "TARGET_OS=$(go env GOOS)" >> $GITHUB_ENV
