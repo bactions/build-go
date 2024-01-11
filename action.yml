@@ -45,6 +45,6 @@ runs:
       with:
         name: bin-${{ env.TARGET_OS }}
         path: |
-          dist/${{ github.event.repository.name }}_*.tar.gz
+          dist/*.tar.gz
           dist/*_checksums.txt
           
