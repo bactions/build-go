@@ -1,3 +1,5 @@
+project_name: '$PROJECT_NAME'
+
 builds:
   -
     main: '{{ if index .Env "MAIN_FILE" }}{{ .Env.MAIN_FILE }}{{ else }}cmd/main.go{{ end }}'

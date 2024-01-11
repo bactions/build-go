@@ -39,6 +39,7 @@ runs:
         args: -f ${{ github.action_path }}/.goreleaser.yml release --clean --debug
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        PROJECT_NAME: ${{ github.event.repository.name }}
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
