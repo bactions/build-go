@@ -18,5 +18,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+          git tag -f latest -am "latest"  
           git tag -f v0 -am "v0"  
           git push -f --tags
