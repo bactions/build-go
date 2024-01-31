@@ -20,7 +20,7 @@ runs:
       if: env.CGO_ENABLED == ''
       shell: bash
       run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
-    - uses: actions/setup-go@v4
+    - uses: actions/setup-go@v5
       with:
         go-version: ${{inputs.go_version}}
     - name: Install cross-compiler for linux/arm64
