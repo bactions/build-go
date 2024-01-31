@@ -4,8 +4,17 @@ description: "Builds the application written in Go and uploads artifact with the
 inputs:
   go_version:
     required: false
-    default: '1.21'
+    deprecationMessage: "use go-version or go-version-file instead"
     description: "Version of Go which should be used to perform the checks"
+
+  go-version:
+    required: false
+    description: "Version of Go which should be used to perform the checks. Takes precedence over go-version-file."
+
+  go-version-file:
+    required: false
+    default: 'go.mod'
+    description: "Accepts a path to a go.mod file or a go.work file that contains the version of Go. Default: 'go.mod'"
 
 runs:
   using: "composite"
@@ -22,7 +31,8 @@ runs:
       run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
     - uses: actions/setup-go@v5
       with:
-        go-version: ${{inputs.go_version}}
+        go-version: ${{ inputs.go-version || inputs.go_version }}
+        go-version-file: ${{inputs.go-version-file}}
     - name: Install cross-compiler for linux/arm64
       if: env.CGO_ENABLED == '1'
       shell: bash
