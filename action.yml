@@ -43,7 +43,7 @@ runs:
     - name: 'Prepare goreleaser configuration'
       shell: bash
       run: 'envsubst < ${{ github.action_path }}/.goreleaser.template.yml > ${{ github.action_path }}/.goreleaser.yml'
-    - uses: goreleaser/goreleaser-action@v5
+    - uses: goreleaser/goreleaser-action@v6
       with:
         version: latest
         args: -f ${{ github.action_path }}/.goreleaser.yml release --clean --debug
