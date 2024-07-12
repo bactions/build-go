@@ -3,12 +3,11 @@ description: "Builds the application written in Go and uploads artifact with the
 
 inputs:
   version:
-    required: false
+    required: true
     description: "Version (and git ref) of the application to build"
-  go_version:
+  ref:
     required: false
-    deprecationMessage: "use go-version or go-version-file instead"
-    description: "Version of Go which should be used to perform the checks"
+    description: "Git ref to checkout before building the application, if not provided, the version input is used as ref"
 
   go-version:
     required: false
@@ -25,7 +24,7 @@ runs:
   steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{inputs.version}}
+        ref: ${{ inputs.ref || inputs.version }}
         fetch-depth: 0
     - run: git fetch --force --tags
       shell: bash
@@ -35,7 +34,7 @@ runs:
       run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
     - uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.go-version || inputs.go_version }}
+        go-version: ${{ inputs.go-version }}
         go-version-file: ${{inputs.go-version-file}}
     - name: Install cross-compiler for linux/arm64
       if: env.CGO_ENABLED == '1'
