@@ -26,6 +26,27 @@ runs:
       with:
         ref: ${{ inputs.ref || inputs.version }}
         fetch-depth: 0
+    - name: Resolve ref type
+      # Resolves the git reference value and type of it (tag, branch, sha)
+      id: git-ref
+      shell: bash
+      run: |
+        value="${{ inputs.ref || inputs.version }}"
+        echo "value=$value" > $GITHUB_OUTPUT
+
+        type=$(git cat-file -t "$value")
+        if [[ "$type" == "tag" ]]; then
+          echo "type=tag" >> $GITHUB_OUTPUT
+        elif [[ "$type" == "commit" && "$(git branch --show-current)" == "$value" ]]; then
+          echo "type=branch" >> $GITHUB_OUTPUT
+        else
+          echo "type=sha" >> $GITHUB_OUTPUT
+        fi
+
+        echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "::group::Outputs"
+        cat $GITHUB_OUTPUT
+        echo "::endgroup::"
     - run: git fetch --force --tags
       shell: bash
     - name: 'Default CGO_ENABLED = 0'
@@ -49,7 +70,7 @@ runs:
     - uses: goreleaser/goreleaser-action@v6
       with:
         version: latest
-        args: -f ${{ github.action_path }}/.goreleaser.yml release --snapshot --clean --verbose
+        args: -f ${{ github.action_path }}/.goreleaser.yml release ${{ steps.git-ref.refType != 'tag' && '' || '--snapshot' }} --clean --verbose
       env:
         GITHUB_TOKEN: ${{ github.token }}
         PROJECT_NAME: ${{ github.event.repository.name }}
