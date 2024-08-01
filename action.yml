@@ -2,10 +2,12 @@ name: "Build Go Application"
 description: "Builds the application written in Go and uploads artifact with the binary and additional files"
 
 inputs:
-  go_version:
+  version:
+    required: true
+    description: "Version (and git ref) of the application to build"
+  ref:
     required: false
-    deprecationMessage: "use go-version or go-version-file instead"
-    description: "Version of Go which should be used to perform the checks"
+    description: "Git ref to checkout before building the application, if not provided, the version input is used as ref"
 
   go-version:
     required: false
@@ -22,7 +24,29 @@ runs:
   steps:
     - uses: actions/checkout@v4
       with:
+        ref: ${{ inputs.ref || inputs.version }}
         fetch-depth: 0
+    - name: Resolve ref type
+      # Resolves the git reference value and type of it (tag, branch, sha)
+      id: git-ref
+      shell: bash
+      run: |
+        value="${{ inputs.ref || inputs.version }}"
+        echo "value=$value" > $GITHUB_OUTPUT
+
+        type=$(git cat-file -t "$value")
+        if [[ "$type" == "tag" ]]; then
+          echo "type=tag" >> $GITHUB_OUTPUT
+        elif [[ "$type" == "commit" && "$(git branch --show-current)" == "$value" ]]; then
+          echo "type=branch" >> $GITHUB_OUTPUT
+        else
+          echo "type=sha" >> $GITHUB_OUTPUT
+        fi
+
+        echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "::group::Outputs"
+        cat $GITHUB_OUTPUT
+        echo "::endgroup::"
     - run: git fetch --force --tags
       shell: bash
     - name: 'Default CGO_ENABLED = 0'
@@ -31,7 +55,7 @@ runs:
       run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
     - uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.go-version || inputs.go_version }}
+        go-version: ${{ inputs.go-version }}
         go-version-file: ${{inputs.go-version-file}}
     - name: Install cross-compiler for linux/arm64
       if: env.CGO_ENABLED == '1'
@@ -43,13 +67,14 @@ runs:
     - name: 'Prepare goreleaser configuration'
       shell: bash
       run: 'envsubst < ${{ github.action_path }}/.goreleaser.template.yml > ${{ github.action_path }}/.goreleaser.yml'
-    - uses: goreleaser/goreleaser-action@v5
+    - uses: goreleaser/goreleaser-action@v6
       with:
         version: latest
-        args: -f ${{ github.action_path }}/.goreleaser.yml release --clean --debug
+        args: -f ${{ github.action_path }}/.goreleaser.yml release ${{ steps.git-ref.refType != 'tag' && '' || '--snapshot' }} --clean --verbose
       env:
         GITHUB_TOKEN: ${{ github.token }}
         PROJECT_NAME: ${{ github.event.repository.name }}
+        VERSION: ${{ inputs.version }}
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
