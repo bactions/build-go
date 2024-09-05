@@ -61,25 +61,57 @@ runs:
       if: env.CGO_ENABLED == '1'
       shell: bash
       run: sudo apt-get update && sudo apt-get -y install gcc-aarch64-linux-gnu
-    - name: 'Set target os'
+
+    - name: Set environment for cross-compilation
       shell: bash
-      run: echo "TARGET_OS=$(go env GOOS)" >> $GITHUB_ENV
-    - name: 'Prepare goreleaser configuration'
+      run: |
+        if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
+          echo "CC_linux_arm64=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CC_linux_amd64=gcc" >> $GITHUB_ENV
+        elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
+          echo "CC_darwin_arm64=gcc" >> $GITHUB_ENV
+          echo "CC_darwin_amd64=gcc" >> $GITHUB_ENV
+        fi
+
+    - name: Build Go binary for multiple architectures
       shell: bash
-      run: 'envsubst < ${{ github.action_path }}/.goreleaser.template.yml > ${{ github.action_path }}/.goreleaser.yml'
-    - uses: goreleaser/goreleaser-action@v6
-      with:
-        version: latest
-        args: -f ${{ github.action_path }}/.goreleaser.yml release ${{ steps.git-ref.refType != 'tag' && '' || '--snapshot' }} --clean --verbose
+      run: |
+        mkdir -p dist
+        for GOARCH in amd64 arm64; do
+          CC=${{ env.CC_${{ env.TARGET_OS }}_${GOARCH} }}
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/mybinary_$GOARCH ./...
+        done
+
+    - name: Create checksums
+      shell: bash
+      run: |
+        cd dist
+        for binary in mybinary_*; do
+          shasum -a 256 $binary > ${binary}_checksums.txt
+        done
+
+    - name: Create tarballs
+      shell: bash
+      run: |
+        cd dist
+        for binary in mybinary_*; do
+          tar -czvf ${binary}_${{ env.TARGET_OS }}.tar.gz $binary ${binary}_checksums.txt
+        done
+
+    - name: Create GitHub release
+      shell: bash
+      run: |
+        if gh release view "${{ inputs.version }}" >/dev/null 2>&1; then
+          echo "Release already exists"
+        else
+          gh release create "${{ inputs.version }}" -t "Release ${{ inputs.version }}" -n "Release for version ${{ inputs.version }}" --draft
+        fi
       env:
-        GITHUB_TOKEN: ${{ github.token }}
-        PROJECT_NAME: ${{ github.event.repository.name }}
-        VERSION: ${{ inputs.version }}
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: bin-${{ env.TARGET_OS }}
-        path: |
-          dist/*.tar.gz
-          dist/*_checksums.txt
-          
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload binaries to release
+      shell: bash
+      run: |
+        gh release upload "${{ inputs.version }}" dist/*.tar.gz dist/*_checksums.txt --clobber
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
