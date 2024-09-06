@@ -84,11 +84,7 @@ runs:
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd ./...
-
-          cp -r config dist/$GOARCH/
-          cp README.md dist/$GOARCH/
-          cp LICENSE dist/$GOARCH/
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd .
         done
 
     - name: List build output for verification
