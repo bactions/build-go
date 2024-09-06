@@ -120,4 +120,4 @@ runs:
     - name: Upload binaries to release
       shell: bash
       run: |
-        gh release upload "${{ inputs.version }}" dist/*.tar.gz dist/*_checksums.txt --clobber
+        find dist -name '*.tar.gz' -o -name '*_checksums.txt' | xargs gh release upload "${{ inputs.version }}" --clobber
