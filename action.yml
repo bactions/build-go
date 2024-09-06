@@ -84,8 +84,21 @@ runs:
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH ./...
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd ./...
+
+          cp -r config dist/$GOARCH/
+          cp README.md dist/$GOARCH/
+          cp LICENSE dist/$GOARCH/
         done
+
+    - name: List build output for verification
+      shell: bash
+      run: |
+        echo "Listing contents of dist/amd64:"
+        ls -R dist/amd64
+
+        echo "Listing contents of dist/arm64:"
+        ls -R dist/arm64
 
     - name: Create checksums
       shell: bash
@@ -106,10 +119,8 @@ runs:
         cd dist
         for GOARCH in amd64 arm64; do
           if [[ -d $GOARCH ]]; then
-            tar -czvf ${GOARCH}_${{ env.TARGET_OS }}.tar.gz -C $GOARCH .
-            if [[ -f "${GOARCH}_checksums.txt" ]]; then
-              mv "${GOARCH}_checksums.txt" "${GOARCH}_${{ env.TARGET_OS }}_checksums.txt"
-            fi
+            tar -czvf ${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
+            shasum -a 256 ${{ inputs.version }}-${GOARCH}.tar.gz > ${{ inputs.version }}-${GOARCH}_checksums.txt
           fi
         done
 
