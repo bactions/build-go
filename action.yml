@@ -77,19 +77,20 @@ runs:
       shell: bash
       run: |
         for GOARCH in amd64 arm64; do
-          mkdir -p $GOARCH
+          mkdir -p dist/$GOARCH
           if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
             CC="aarch64-linux-gnu-gcc"
             [[ "$GOARCH" == "amd64" ]] && CC="gcc"
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o $GOARCH ./...
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH ./...
         done
 
     - name: Create checksums
       shell: bash
       run: |
+        cd dist
         find . -type f -executable -print | while read binary; do
           shasum -a 256 "$binary" > "${binary}_checksums.txt"
         done
@@ -97,6 +98,7 @@ runs:
     - name: Create tarballs
       shell: bash
       run: |
+        cd dist
         for GOARCH in amd64 arm64; do
           if [[ -d $GOARCH ]]; then
             tar -czvf ${GOARCH}_${{ env.TARGET_OS }}.tar.gz -C $GOARCH .
