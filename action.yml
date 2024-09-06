@@ -92,7 +92,7 @@ runs:
       run: |
         cd dist
         find . -type f -executable -print | while read binary; do
-          shasum -a 256 "$binary" > "${binary}_checksums.txt"
+          shasum -a 256 "$binary" > "${GOARCH}_checksums.txt"
         done
 
     - name: Create tarballs
@@ -102,8 +102,8 @@ runs:
         for GOARCH in amd64 arm64; do
           if [[ -d $GOARCH ]]; then
             tar -czvf ${GOARCH}_${{ env.TARGET_OS }}.tar.gz -C $GOARCH .
-            if [[ -f "$GOARCH/checksums.txt" ]]; then
-              cp "$GOARCH/checksums.txt" "${GOARCH}_checksums.txt"
+            if [[ -f "$GOARCH/${GOARCH}_checksums.txt" ]]; then
+              mv "$GOARCH/${GOARCH}_checksums.txt" "${GOARCH}_checksums.txt"
             fi
           fi
         done
