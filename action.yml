@@ -76,7 +76,7 @@ runs:
     - name: Build Go binary for multiple architectures
       shell: bash
       run: |
-        mkdir -p dist
+        mkdir -p dist/$GOARCH
         for GOARCH in amd64 arm64; do
           if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
             CC="aarch64-linux-gnu-gcc"
@@ -84,7 +84,7 @@ runs:
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/mybinary_$GOARCH ./...
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH ./...
         done
 
     - name: Create checksums
