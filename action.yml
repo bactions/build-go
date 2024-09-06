@@ -78,7 +78,12 @@ runs:
       run: |
         mkdir -p dist
         for GOARCH in amd64 arm64; do
-          CC=${{ env.CC_${{ env.TARGET_OS }}_${GOARCH} }}
+          if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
+            CC="aarch64-linux-gnu-gcc"
+            [[ "$GOARCH" == "amd64" ]] && CC="gcc"
+          elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
+            CC="gcc"  # Set appropriate compiler for darwin if needed
+          fi
           GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/mybinary_$GOARCH ./...
         done
 
