@@ -84,15 +84,14 @@ runs:
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/mybinary_$GOARCH .
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH ./...
         done
-
 
     - name: Create checksums
       shell: bash
       run: |
         cd dist
-        find . -name 'mybinary_*' -type f | while read binary; do
+        find . -type f -executable -print | while read binary; do
           shasum -a 256 "$binary" > "${binary}_checksums.txt"
         done
 
