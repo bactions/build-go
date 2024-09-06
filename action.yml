@@ -111,12 +111,8 @@ runs:
         else
           gh release create "${{ inputs.version }}" -t "Release ${{ inputs.version }}" -n "Release for version ${{ inputs.version }}" --draft
         fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload binaries to release
       shell: bash
       run: |
         gh release upload "${{ inputs.version }}" dist/*.tar.gz dist/*_checksums.txt --clobber
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
