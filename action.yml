@@ -91,9 +91,14 @@ runs:
       shell: bash
       run: |
         cd dist
-        find . -type f -executable -print | while read binary; do
-          shasum -a 256 "$binary" > "${GOARCH}_checksums.txt"
+        for GOARCH in amd64 arm64; do
+          if [[ -d $GOARCH ]]; then
+            find $GOARCH -type f -executable | while read binary; do
+              shasum -a 256 "$binary" > "${GOARCH}_checksums.txt"
+            done
+          fi
         done
+
 
     - name: Create tarballs
       shell: bash
@@ -102,8 +107,8 @@ runs:
         for GOARCH in amd64 arm64; do
           if [[ -d $GOARCH ]]; then
             tar -czvf ${GOARCH}_${{ env.TARGET_OS }}.tar.gz -C $GOARCH .
-            if [[ -f "$GOARCH/${GOARCH}_checksums.txt" ]]; then
-              mv "$GOARCH/${GOARCH}_checksums.txt" "${GOARCH}_checksums.txt"
+            if [[ -f "${GOARCH}_checksums.txt" ]]; then
+              mv "${GOARCH}_checksums.txt" "${GOARCH}_${{ env.TARGET_OS }}_checksums.txt"
             fi
           fi
         done
@@ -126,7 +131,7 @@ runs:
     - name: Upload binaries to release
       shell: bash
       run: |
-        find -name '*.tar.gz' -o -name '*_checksums.txt' | while read file; do
+        find dist -name '*.tar.gz' -o -name '*_checksums.txt' | while read file; do
           gh release upload "${{ inputs.version }}" "$file" --clobber
         done
 
