@@ -99,8 +99,13 @@ runs:
       shell: bash
       run: |
         cd dist
-        for binary in mybinary_*; do
-          tar -czvf ${binary}_${{ env.TARGET_OS }}.tar.gz $binary ${binary}_checksums.txt
+        find . -type f -executable | while read binary; do
+          checksum_file="${binary}_checksums.txt"
+          if [[ -f "$checksum_file" ]]; then
+            tar -czvf ${binary}_${{ env.TARGET_OS }}.tar.gz "$binary" "$checksum_file"
+          else
+            echo "Warning: Checksum file not found for $binary"
+          fi
         done
 
     - name: Create GitHub release
