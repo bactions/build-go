@@ -127,8 +127,7 @@ runs:
       shell: bash
       run: |
         find dist -name '*.tar.gz' -o -name '*_checksums.txt' | while read file; do
-          name=$(basename "$file")
-          gh release upload "${{ inputs.version }}" "$file" --name "$name" --clobber
+          gh release upload "${{ inputs.version }}" "$file" --clobber
         done
 
     - name: Verify GitHub release
