@@ -77,20 +77,19 @@ runs:
       shell: bash
       run: |
         for GOARCH in amd64 arm64; do
-          mkdir -p dist/$GOARCH
+          mkdir -p $GOARCH
           if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
             CC="aarch64-linux-gnu-gcc"
             [[ "$GOARCH" == "amd64" ]] && CC="gcc"
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH ./...
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o $GOARCH ./...
         done
 
     - name: Create checksums
       shell: bash
       run: |
-        cd dist
         find . -type f -executable -print | while read binary; do
           shasum -a 256 "$binary" > "${binary}_checksums.txt"
         done
@@ -98,13 +97,12 @@ runs:
     - name: Create tarballs
       shell: bash
       run: |
-        cd dist
-        find . -type f -executable | while read binary; do
-          checksum_file="${binary}_checksums.txt"
-          if [[ -f "$checksum_file" ]]; then
-            tar -czvf ${binary}_${{ env.TARGET_OS }}.tar.gz "$binary" "$checksum_file"
-          else
-            echo "Warning: Checksum file not found for $binary"
+        for GOARCH in amd64 arm64; do
+          if [[ -d $GOARCH ]]; then
+            tar -czvf ${GOARCH}_${{ env.TARGET_OS }}.tar.gz -C $GOARCH .
+            if [[ -f "$GOARCH/checksums.txt" ]]; then
+              cp "$GOARCH/checksums.txt" "${GOARCH}_checksums.txt"
+            fi
           fi
         done
 
@@ -117,16 +115,16 @@ runs:
           gh release create "${{ inputs.version }}" -t "Release ${{ inputs.version }}" -n "Release for version ${{ inputs.version }}" --draft
         fi
 
-    - name: List dist directory
+    - name: List directory
       shell: bash
       run: |
-        echo "Listing dist directory:"
-        ls -R dist
+        echo "Listing directory:"
+        ls -R 
 
     - name: Upload binaries to release
       shell: bash
       run: |
-        find dist -name '*.tar.gz' -o -name '*_checksums.txt' | while read file; do
+        find -name '*.tar.gz' -o -name '*_checksums.txt' | while read file; do
           gh release upload "${{ inputs.version }}" "$file" --clobber
         done
 
