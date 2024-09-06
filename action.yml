@@ -117,6 +117,12 @@ runs:
           gh release create "${{ inputs.version }}" -t "Release ${{ inputs.version }}" -n "Release for version ${{ inputs.version }}" --draft
         fi
 
+    - name: List dist directory
+      shell: bash
+      run: |
+        echo "Listing dist directory:"
+        ls -R dist
+
     - name: Upload binaries to release
       shell: bash
       run: |
