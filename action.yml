@@ -119,12 +119,16 @@ runs:
       run: |
         mv dist/amd64 dist/x86_64
 
-    - name: Create tarballs for each architecture
+    - name: Create tarballs and rename to x86_64 if needed
       shell: bash
       run: |
         cd dist
         for GOARCH in amd64 arm64; do
-          tar -czvf ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
+          if [[ "$GOARCH" == "amd64" ]]; then
+            tar -czvf ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz -C $GOARCH .
+          else
+            tar -czvf ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
+          fi
         done
 
     - name: Rename amd64 tarball to x86_64
