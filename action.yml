@@ -97,8 +97,12 @@ runs:
       run: |
         set -x  # Enable verbose logging
         for GOARCH in amd64 arm64; do
-          [[ -f README.md ]] && cp README.md dist/$GOARCH/
-          [[ -f LICENSE ]] && cp LICENSE dist/$GOARCH/
+          if [[ -f README.md ]]; then
+            cp README.md dist/$GOARCH/
+          fi
+          if [[ -f LICENSE ]]; then
+            cp LICENSE dist/$GOARCH/
+          fi
         done
 
     - name: List build output for verification
