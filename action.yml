@@ -131,11 +131,6 @@ runs:
           fi
         done
 
-    - name: Rename amd64 tarball to x86_64
-      shell: bash
-      run: |
-        mv dist/ghaction-polygon-${{ inputs.version }}-amd64.tar.gz dist/ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz
-
     - name: Generate checksums for both tarballs
       shell: bash
       run: |
