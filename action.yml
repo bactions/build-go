@@ -67,20 +67,20 @@ runs:
       run: |
         if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
           echo "CC_linux_arm64=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CC_linux_x86_64=gcc" >> $GITHUB_ENV
+          echo "CC_linux_amd64=gcc" >> $GITHUB_ENV
         elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
           echo "CC_darwin_arm64=gcc" >> $GITHUB_ENV
-          echo "CC_darwin_x86_64=gcc" >> $GITHUB_ENV
+          echo "CC_darwin_amd64=gcc" >> $GITHUB_ENV
         fi
 
     - name: Build Go binary for multiple architectures
       shell: bash
       run: |
-        for GOARCH in x86_64 arm64; do
+        for GOARCH in amd64 arm64; do
           mkdir -p dist/$GOARCH
           if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
             CC="aarch64-linux-gnu-gcc"
-            [[ "$GOARCH" == "x86_64" ]] && CC="gcc"
+            [[ "$GOARCH" == "amd64" ]] && CC="gcc"
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
@@ -90,7 +90,7 @@ runs:
     - name: Add README and LICENSE to each build directory
       shell: bash
       run: |
-        for GOARCH in x86_64 arm64; do
+        for GOARCH in amd64 arm64; do
           cp README.md LICENSE dist/$GOARCH/
         done
 
@@ -103,13 +103,23 @@ runs:
         echo "Listing contents of dist/arm64:"
         ls -R dist/arm64
 
+    - name: Rename amd64 directory to x86_64
+      shell: bash
+      run: |
+        mv dist/amd64 dist/x86_64
+
     - name: Create tarballs for each architecture
       shell: bash
       run: |
         cd dist
-        for GOARCH in x86_64 arm64; do
+        for GOARCH in amd64 arm64; do
           tar -czvf ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
         done
+
+    - name: Rename amd64 tarball to x86_64
+      shell: bash
+      run: |
+        mv dist/ghaction-s-${{ inputs.version }}-amd64.tar.gz dist/ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz
 
     - name: Generate checksums for both tarballs
       shell: bash
