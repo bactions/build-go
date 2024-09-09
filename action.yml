@@ -125,7 +125,7 @@ runs:
         cd dist
         for GOARCH in amd64 arm64; do
           if [[ "$GOARCH" == "amd64" ]]; then
-            tar -czvf ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz -C $GOARCH .
+            tar -czvf ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz -C x86_64 .
           else
             tar -czvf ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
           fi
