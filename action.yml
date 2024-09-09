@@ -90,7 +90,7 @@ runs:
       shell: bash
       run: |
         echo "Listing directory:"
-        ls -R 
+        ls -R
         
     - name: Add README and LICENSE to each build directory (if they exist)
       shell: bash
@@ -134,7 +134,7 @@ runs:
     - name: Rename amd64 tarball to x86_64
       shell: bash
       run: |
-        mv dist/ghaction-s-${{ inputs.version }}-amd64.tar.gz dist/ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz
+        mv dist/ghaction-polygon-${{ inputs.version }}-amd64.tar.gz dist/ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz
 
     - name: Generate checksums for both tarballs
       shell: bash
@@ -142,6 +142,12 @@ runs:
         cd dist
         shasum -a 256 ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz > checksums.txt
         shasum -a 256 ghaction-polygon-${{ inputs.version }}-arm64.tar.gz >> checksums.txt
+
+    - name: List directory
+      shell: bash
+      run: |
+        echo "Listing directory:"
+        ls -R
 
     - name: Zip the tarballs and checksum file
       shell: bash
@@ -153,19 +159,6 @@ runs:
       shell: bash
       run: |
         gh release upload "${{ inputs.version }}" dist/ghaction-polygon-${{ inputs.version }}.zip --clobber
-
-    - name: List directory
-      shell: bash
-      run: |
-        echo "Listing directory:"
-        ls -R 
-
-    - name: Upload binaries to release
-      shell: bash
-      run: |
-        find dist -name '*.tar.gz' -o -name '*_checksums.txt' | while read file; do
-          gh release upload "${{ inputs.version }}" "$file" --clobber
-        done
 
     - name: Verify GitHub release
       shell: bash
