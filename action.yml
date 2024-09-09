@@ -95,7 +95,6 @@ runs:
     - name: Add README and LICENSE to each build directory (if they exist)
       shell: bash
       run: |
-        set -x  # Enable verbose logging
         for GOARCH in amd64 arm64; do
           if [[ -f README.md ]]; then
             cp README.md dist/$GOARCH/
@@ -117,12 +116,13 @@ runs:
     - name: Create tarballs for each architecture
       shell: bash
       run: |
+        set -x  # Enable verbose logging
         cd dist
         for GOARCH in amd64 arm64; do
           if [[ "$GOARCH" == "amd64" ]]; then
-            tar -czvf ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz -C $GOARCH *
+            (cd ${GOARCH} && tar -czvf ../ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz *)
           else
-            tar -czvf ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH *
+            (cd ${GOARCH} && tar -czvf ../ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz *)
           fi
         done
 
