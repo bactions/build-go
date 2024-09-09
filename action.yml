@@ -87,17 +87,12 @@ runs:
           GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd ./cmd
         done
         
-    - name: List directory
-      shell: bash
-      run: |
-        echo "Listing directory:"
-        ls -R 
-
-    - name: Add README and LICENSE to each build directory
+    - name: Add README and LICENSE to each build directory (if they exist)
       shell: bash
       run: |
         for GOARCH in amd64 arm64; do
-          cp README.md LICENSE dist/$GOARCH/
+          [[ -f README.md ]] && cp README.md dist/$GOARCH/
+          [[ -f LICENSE ]] && cp LICENSE dist/$GOARCH/
         done
 
     - name: List build output for verification
