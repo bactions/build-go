@@ -67,24 +67,31 @@ runs:
       run: |
         if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
           echo "CC_linux_arm64=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CC_linux_amd64=gcc" >> $GITHUB_ENV
+          echo "CC_linux_x86_64=gcc" >> $GITHUB_ENV
         elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
           echo "CC_darwin_arm64=gcc" >> $GITHUB_ENV
-          echo "CC_darwin_amd64=gcc" >> $GITHUB_ENV
+          echo "CC_darwin_x86_64=gcc" >> $GITHUB_ENV
         fi
 
     - name: Build Go binary for multiple architectures
       shell: bash
       run: |
-        for GOARCH in amd64 arm64; do
+        for GOARCH in x86_64 arm64; do
           mkdir -p dist/$GOARCH
           if [[ "${{ env.TARGET_OS }}" == "linux" ]]; then
             CC="aarch64-linux-gnu-gcc"
-            [[ "$GOARCH" == "amd64" ]] && CC="gcc"
+            [[ "$GOARCH" == "x86_64" ]] && CC="gcc"
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
           GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd ./cmd
+        done
+
+    - name: Add README and LICENSE to each build directory
+      shell: bash
+      run: |
+        for GOARCH in x86_64 arm64; do
+          cp README.md LICENSE dist/$GOARCH/
         done
 
     - name: List build output for verification
@@ -96,38 +103,31 @@ runs:
         echo "Listing contents of dist/arm64:"
         ls -R dist/arm64
 
-    - name: Create checksums
+    - name: Create tarballs for each architecture
       shell: bash
       run: |
         cd dist
-        for GOARCH in amd64 arm64; do
-          if [[ -d $GOARCH ]]; then
-            find $GOARCH -type f -executable | while read binary; do
-              shasum -a 256 "$binary" > "${GOARCH}_checksums.txt"
-            done
-          fi
+        for GOARCH in x86_64 arm64; do
+          tar -czvf ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
         done
 
-
-    - name: Create tarballs
+    - name: Generate checksums for both tarballs
       shell: bash
       run: |
         cd dist
-        for GOARCH in amd64 arm64; do
-          if [[ -d $GOARCH ]]; then
-            tar -czvf ${{ inputs.version }}-${GOARCH}.tar.gz -C $GOARCH .
-            shasum -a 256 ${{ inputs.version }}-${GOARCH}.tar.gz > ${{ inputs.version }}-${GOARCH}_checksums.txt
-          fi
-        done
+        shasum -a 256 ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz > checksums.txt
+        shasum -a 256 ghaction-polygon-${{ inputs.version }}-arm64.tar.gz >> checksums.txt
 
-    - name: Create GitHub release
+    - name: Zip the tarballs and checksum file
       shell: bash
       run: |
-        if gh release view "${{ inputs.version }}" >/dev/null 2>&1; then
-          echo "Release already exists"
-        else
-          gh release create "${{ inputs.version }}" -t "Release ${{ inputs.version }}" -n "Release for version ${{ inputs.version }}" --draft
-        fi
+        cd dist
+        zip ghaction-polygon-${{ inputs.version }}.zip ghaction-polygon-*.tar.gz checksums.txt
+
+    - name: Upload the zip file to the release
+      shell: bash
+      run: |
+        gh release upload "${{ inputs.version }}" dist/ghaction-polygon-${{ inputs.version }}.zip --clobber
 
     - name: List directory
       shell: bash
