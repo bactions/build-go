@@ -114,11 +114,6 @@ runs:
         echo "Listing contents of dist/arm64:"
         ls -R dist/arm64
 
-    - name: Rename amd64 directory to x86_64
-      shell: bash
-      run: |
-        mv dist/amd64 dist/x86_64
-
     - name: Create tarballs for each architecture
       shell: bash
       run: |
