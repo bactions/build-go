@@ -154,7 +154,8 @@ runs:
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: bin-${{ env.TARGET_OS }}
+        # name: bin-${{ env.TARGET_OS }}
+        name: bin-linux
         path: |
           dist/*.tar.gz
           dist/checksums.txt
