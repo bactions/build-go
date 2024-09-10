@@ -140,16 +140,24 @@ runs:
         echo "Listing directory:"
         ls -R
 
-    - name: Zip the tarballs and checksum file
-      shell: bash
-      run: |
-        cd dist
-        zip ghaction-polygon-${{ inputs.version }}.zip ghaction-polygon-*.tar.gz checksums.txt
+    # - name: Zip the tarballs and checksum file
+    #   shell: bash
+    #   run: |
+    #     cd dist
+    #     zip ghaction-polygon-${{ inputs.version }}.zip ghaction-polygon-*.tar.gz checksums.txt
 
-    - name: Upload the zip file to the release
-      shell: bash
-      run: |
-        gh release upload "${{ inputs.version }}" dist/ghaction-polygon-${{ inputs.version }}.zip --clobber
+    # - name: Upload the zip file to the release
+    #   shell: bash
+    #   run: |
+    #     gh release upload "${{ inputs.version }}" dist/ghaction-polygon-${{ inputs.version }}.zip --clobber
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: bin-${{ env.TARGET_OS }}
+        path: |
+          dist/*.tar.gz
+          dist/*_checksums.txt
 
     - name: Verify GitHub release
       shell: bash
