@@ -157,7 +157,7 @@ runs:
         name: bin-${{ env.TARGET_OS }}
         path: |
           dist/*.tar.gz
-          dist/*_checksums.txt
+          dist/checksums.txt
 
     - name: Verify GitHub release
       shell: bash
