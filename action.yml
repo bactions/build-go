@@ -26,6 +26,7 @@ runs:
       with:
         ref: ${{ inputs.ref || inputs.version }}
         fetch-depth: 0
+
     - name: Resolve ref type
       # Resolves the git reference value and type of it (tag, branch, sha)
       id: git-ref
@@ -49,6 +50,7 @@ runs:
         echo "::endgroup::"
     - run: git fetch --force --tags
       shell: bash
+
     - name: 'Default CGO_ENABLED = 0'
       if: env.CGO_ENABLED == ''
       shell: bash
@@ -57,10 +59,15 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         go-version-file: ${{inputs.go-version-file}}
+
     - name: Install cross-compiler for linux/arm64
       if: env.CGO_ENABLED == '1'
       shell: bash
       run: sudo apt-get update && sudo apt-get -y install gcc-aarch64-linux-gnu
+
+    - name: 'Set target os'
+      shell: bash
+      run: echo "TARGET_OS=$(go env GOOS)" >> $GITHUB_ENV
 
     - name: Set environment for cross-compilation
       shell: bash
@@ -86,12 +93,7 @@ runs:
           fi
           GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd ./cmd
         done
-    - name: List directory
-      shell: bash
-      run: |
-        echo "Listing directory:"
-        ls -R
-        
+
     - name: Add README and LICENSE to each build directory (if they exist)
       shell: bash
       run: |
@@ -104,15 +106,6 @@ runs:
           fi
         done
 
-    - name: List build output for verification
-      shell: bash
-      run: |
-        echo "Listing contents of dist/amd64:"
-        ls -R dist/amd64
-
-        echo "Listing contents of dist/arm64:"
-        ls -R dist/arm64
-
     - name: Create tarballs for each architecture
       shell: bash
       run: |
@@ -120,47 +113,23 @@ runs:
         cd dist
         for GOARCH in amd64 arm64; do
           if [[ "$GOARCH" == "amd64" ]]; then
-            (cd ${GOARCH} && tar -czvf ../ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz *)
+            (cd ${GOARCH} && tar -czvf ../${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_x86_64.tar.gz *)
           else
-            (cd ${GOARCH} && tar -czvf ../ghaction-polygon-${{ inputs.version }}-${GOARCH}.tar.gz *)
+            (cd ${GOARCH} && tar -czvf ../${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_${GOARCH}.tar.gz *)
           fi
         done
-
 
     - name: Generate checksums for both tarballs
       shell: bash
       run: |
         cd dist
-        shasum -a 256 ghaction-polygon-${{ inputs.version }}-x86_64.tar.gz > checksums.txt
-        shasum -a 256 ghaction-polygon-${{ inputs.version }}-arm64.tar.gz >> checksums.txt
-
-    - name: List directory
-      shell: bash
-      run: |
-        echo "Listing directory:"
-        ls -R
-
-    # - name: Zip the tarballs and checksum file
-    #   shell: bash
-    #   run: |
-    #     cd dist
-    #     zip ghaction-polygon-${{ inputs.version }}.zip ghaction-polygon-*.tar.gz checksums.txt
-
-    # - name: Upload the zip file to the release
-    #   shell: bash
-    #   run: |
-    #     gh release upload "${{ inputs.version }}" dist/ghaction-polygon-${{ inputs.version }}.zip --clobber
+        shasum -a 256 ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_x86_64.tar.gz >> ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_checksums.txt
+        shasum -a 256 ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_${GOARCH}.tar.gz >> ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_checksums.txt
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        # name: bin-${{ env.TARGET_OS }}
-        name: bin-linux
+        name: bin-${{ env.TARGET_OS }}
         path: |
           dist/*.tar.gz
-          dist/checksums.txt
-
-    - name: Verify GitHub release
-      shell: bash
-      run: |
-        gh release view "${{ inputs.version }}"
+          dist/*_checksums.txt
