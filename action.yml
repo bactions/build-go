@@ -91,7 +91,7 @@ runs:
           elif [[ "${{ env.TARGET_OS }}" == "darwin" ]]; then
             CC="gcc"  # Set appropriate compiler for darwin if needed
           fi
-          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/cmd ./cmd
+          GOOS=${{ env.TARGET_OS }} GOARCH=$GOARCH CC=$CC go build -o dist/$GOARCH/${{ github.event.repository.name }} ./cmd
         done
 
     - name: Add README and LICENSE to each build directory (if they exist)
