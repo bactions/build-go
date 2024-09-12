@@ -109,15 +109,14 @@ runs:
     - name: Create tarballs and checksum for each architecture
       shell: bash
       run: |
-        set -x  # Enable verbose logging
         cd dist
         for GOARCH in amd64 arm64; do
           if [[ "$GOARCH" == "amd64" ]]; then
-            (cd ${GOARCH} && tar -czvf ../${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_x86_64.tar.gz *)
-            shasum -a 256 ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_x86_64.tar.gz >> ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_checksums.txt
+            (cd ${GOARCH} && tar -czvf ../${{ github.event.repository.name }}_${{ inputs.version }}_${{ env.TARGET_OS }}_x86_64.tar.gz *)
+            shasum -a 256 ${{ github.event.repository.name }}_${{ inputs.version }}_${{ env.TARGET_OS }}_x86_64.tar.gz >> ${{ github.event.repository.name }}_${{ inputs.version }}_${{ env.TARGET_OS }}_checksums.txt
           else
-            (cd ${GOARCH} && tar -czvf ../${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_${GOARCH}.tar.gz *)
-            shasum -a 256 ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_arm64.tar.gz >> ${{ github.event.repository.name }}_${{ env.TARGET_OS }}_${{ inputs.version }}_checksums.txt
+            (cd ${GOARCH} && tar -czvf ../${{ github.event.repository.name }}_${{ inputs.version }}_${{ env.TARGET_OS }}_${GOARCH}.tar.gz *)
+            shasum -a 256 ${{ github.event.repository.name }}_${{ inputs.version }}_${{ env.TARGET_OS }}_arm64.tar.gz >> ${{ github.event.repository.name }}_${{ inputs.version }}_${{ env.TARGET_OS }}_checksums.txt
           fi
         done
 
