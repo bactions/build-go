@@ -67,6 +67,8 @@ runs:
     - name: 'Prepare goreleaser configuration'
       shell: bash
       run: 'envsubst < ${{ github.action_path }}/.goreleaser.template.yml > ${{ github.action_path }}/.goreleaser.yml'
+      env:
+        PROJECT_NAME: ${{ github.event.repository.name }}
     - uses: goreleaser/goreleaser-action@v6
       with:
         version: latest

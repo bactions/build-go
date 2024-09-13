@@ -28,4 +28,4 @@ checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_{{ title .Env.TARGET_OS }}_checksums.txt"
 
 snapshot:
-  name_template: '{{ if index .Env "VERSION" }}{{ .Env.VERSION }}{{ else }}{{ .Version }}{{ end }}'
+  version_template: '{{ if index .Env "VERSION" }}{{ .Env.VERSION }}{{ else }}{{ .Version }}{{ end }}'
