@@ -18,6 +18,11 @@ inputs:
     default: 'go.mod'
     description: "Accepts a path to a go.mod file or a go.work file that contains the version of Go. Default: 'go.mod'"
 
+  artifacts-suffix:
+    required: false
+    default: ''
+    description: "Suffix to append to the artifact name to prevent collisions if this action is used multiple times in the same workflow"
+
 runs:
   using: "composite"
 
@@ -80,7 +85,7 @@ runs:
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: bin-${{ env.TARGET_OS }}
+        name: bin-${{ env.TARGET_OS }}${{ inputs.artifacts-suffix != '' && '-' || '' }}${{ inputs.artifacts-suffix }}
         path: |
           dist/*.tar.gz
           dist/*_checksums.txt
