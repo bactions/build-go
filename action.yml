@@ -23,6 +23,11 @@ inputs:
     default: ''
     description: "Suffix to append to the artifact name to prevent collisions if this action is used multiple times in the same workflow"
 
+  goreleaser-config:
+    description: 'Path to GoReleaser config file'
+    required: false
+    default: ''
+
 runs:
   using: "composite"
 
@@ -69,9 +74,22 @@ runs:
     - name: 'Set target os'
       shell: bash
       run: echo "TARGET_OS=$(go env GOOS)" >> $GITHUB_ENV
+
+    - name: 'Set GoReleaser config file'
+      id: set_config
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.goreleaser-config }}" ]; then
+          echo "No GoReleaser config file provided, using default"
+          echo "::set-output name=goreleaser_config::${{ github.action_path }}/.goreleaser.template.yml"
+        else
+          echo "Using provided GoReleaser config file: ${{ inputs.goreleaser-config }}"
+          echo "::set-output name=goreleaser_config::${{ inputs.goreleaser-config }}"
+        fi
+
     - name: 'Prepare goreleaser configuration'
       shell: bash
-      run: 'envsubst < ${{ github.action_path }}/.goreleaser.template.yml > ${{ github.action_path }}/.goreleaser.yml'
+      run: 'envsubst < ${{ steps.set_config.outputs.goreleaser_config }} > ${{ github.action_path }}/.goreleaser.yml'
       env:
         PROJECT_NAME: ${{ github.event.repository.name }}
     - uses: goreleaser/goreleaser-action@v6
