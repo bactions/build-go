@@ -58,7 +58,7 @@ runs:
       if: env.CGO_ENABLED == ''
       shell: bash
       run: echo "CGO_ENABLED=0" >> $GITHUB_ENV
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version: ${{ inputs.go-version }}
         go-version-file: ${{inputs.go-version-file}}
