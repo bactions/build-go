@@ -83,7 +83,7 @@ runs:
         PROJECT_NAME: ${{ github.event.repository.name }}
         VERSION: ${{ inputs.version }}
     - name: Upload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: bin-${{ env.TARGET_OS }}${{ inputs.artifacts-suffix != '' && '-' || '' }}${{ inputs.artifacts-suffix }}
         path: |
